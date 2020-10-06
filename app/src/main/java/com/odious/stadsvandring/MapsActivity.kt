@@ -15,7 +15,9 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 
 /*    //Displays map of current place
 class MapsActivityCurrentPlace : AppCompatActivity(), OnMapReadyCallback {
@@ -87,9 +89,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
     }
 
-
-
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -107,15 +106,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 Log.d("Location", "" + location.latitude + "," + location.longitude)
 
-                val sydney = LatLng(location.latitude, location.longitude)
-                mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+                val coordinates = LatLng(location.latitude, location.longitude)
+                mMap.addMarker(MarkerOptions().position(coordinates).title("Your Current Location"))
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(coordinates))
+            }
+
+            fun makeApiCall(location: Location) {
+                val request = Request.Builder().url("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.latitude},${location.longitude}&radius=1500&type=restaurant&key=AIzaSyAKm0fHb6CQqAxb6bk4UcHN0kDhMhLDmFg")
+                    .build()
+
+                val response = OkHttpClient().newCall(request).execute().body?.string()
+                val jsonObject = JSONObject(response)
+
+                Log.d("JsonObject", jsonObject.toString())
+
+                
             }
         })
-
-
-
-        // Add a marker in Sydney and move the camera
-
     }
 }
