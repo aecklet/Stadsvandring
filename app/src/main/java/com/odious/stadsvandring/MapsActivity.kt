@@ -19,18 +19,15 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 
-/*    //Displays map of current place
-class MapsActivityCurrentPlace : AppCompatActivity(), OnMapReadyCallback {
-    private var map: GoogleMap? = null
-    private var cameraPosition: CameraPosition? = null
-
-    private lateinit var placesClient: PlacesClient
-
-} */
-
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+
+    private var loc = Location(LocationManager.NETWORK_PROVIDER)
+
+    fun setCoordinates(location: Location) {
+        loc = location
+    }
 
     class LocationHelper {
 
@@ -70,10 +67,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     LOCATION_REFRESH_DISTANCE.toFloat(),
                     mLocationListener)
             } else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.ACCESS_COARSE_LOCATION) || ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(context as
+                            Activity, Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
                     // Permission Denied
                 } else {
-                    ActivityCompat.requestPermissions(context, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), MY_PERMISSIONS_REQUEST)
+                    ActivityCompat.requestPermissions(context,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION),
+                            MY_PERMISSIONS_REQUEST)
                 }
             }
         }
@@ -87,6 +89,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        Log.d("loc", "$loc")
     }
 
     /**
@@ -104,24 +108,36 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         LocationHelper().startListeningUserLocation(this, object : LocationHelper.MyLocationListener {
             override fun onLocationChanged(location: Location) {
 
-                Log.d("Location", "" + location.latitude + "," + location.longitude)
+                val temp = Location(LocationManager.GPS_PROVIDER)
+                temp.latitude = location.latitude
+                temp.longitude = location.longitude
+                Log.d("temp", "$temp")
+                setCoordinates(temp)
+                Log.d("locAfterTemp", "$loc")
 
-                val coordinates = LatLng(location.latitude, location.longitude)
-                mMap.addMarker(MarkerOptions().position(coordinates).title("Your Current Location"))
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(coordinates))
-            }
+                val markerCordinates = LatLng(location.latitude, location.longitude)
+                mMap.addMarker(MarkerOptions().position(markerCordinates).title("Your Current Location"))
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(markerCordinates))
 
-            fun makeApiCall(location: Location) {
-                val request = Request.Builder().url("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.latitude},${location.longitude}&radius=1500&type=restaurant&key=AIzaSyAKm0fHb6CQqAxb6bk4UcHN0kDhMhLDmFg")
-                    .build()
-
-                val response = OkHttpClient().newCall(request).execute().body?.string()
-                val jsonObject = JSONObject(response)
-
-                Log.d("JsonObject", jsonObject.toString())
-
-                
             }
         })
     }
+    
+
+
+    /*
+    private fun makeApiCall(location: Location) {
+        Log.d("Api", "Api Call Start With $location")
+        Log.d("makeApiCall", "${location.latitude} ${location.longitude}")
+        val request =
+            Request
+                .Builder()
+                .url("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.latitude}," +
+                        "${location.longitude}&radius=1500&type=restaurant&key=AIzaSyAKm0fHb6CQqAxb6bk4UcHN0kDhMhLDmFg")
+                .build()
+
+        val response = OkHttpClient().newCall(request).execute().body!!.string()
+        val jsonObject = JSONObject(response)
+    }
+     */
 }
